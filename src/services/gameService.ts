@@ -1,10 +1,30 @@
-import axios from 'axios';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { randomBytes } from 'crypto';
 
 dotenv.config();
+
+// Helper function for fetch with timeout
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 5000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
+}
 
 interface BalloonData {
   lat: number;
@@ -89,8 +109,17 @@ export async function fetchBalloonData(): Promise<BalloonData[]> {
     
     try {
       console.log(`Attempting to fetch balloon data from ${hourStr}.json...`);
-      const response = await axios.get(url);
-      const data = response.data;
+      const response = await fetchWithTimeout(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log(`✗ ${hourStr}.json not found (404), trying next...`);
+          continue;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data: any = await response.json();
       
       // The API format is: { "0": [lat, lon, alt], "1": [lat, lon, alt], ... }
       // or it might be an array: [[lat, lon, alt], [lat, lon, alt], ...]
@@ -117,11 +146,7 @@ export async function fetchBalloonData(): Promise<BalloonData[]> {
         console.log(`✗ No valid balloon data in ${hourStr}.json, trying next...`);
       }
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        console.log(`✗ ${hourStr}.json not found (404), trying next...`);
-      } else {
-        console.log(`✗ Error fetching ${hourStr}.json:`, error.message);
-      }
+      console.log(`✗ Error fetching ${hourStr}.json:`, error.message);
       // Continue to next hour
     }
   }
@@ -174,21 +199,25 @@ function extractCoordinates(item: any, id: string): BalloonData | null {
 // Reverse geocode to get location name from coordinates (using Nominatim - free!)
 async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
   try {
-    const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
-      params: {
-        lat,
-        lon,
-        format: 'json',
-        zoom: 5, // City/region level
-        addressdetails: 1
-      },
+    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+    url.searchParams.set('lat', lat.toString());
+    url.searchParams.set('lon', lon.toString());
+    url.searchParams.set('format', 'json');
+    url.searchParams.set('zoom', '5'); // City/region level
+    url.searchParams.set('addressdetails', '1');
+    
+    const response = await fetchWithTimeout(url.toString(), {
       headers: {
         'User-Agent': 'BalloonPhotoGuesser/1.0'
-      },
-      timeout: 5000
-    });
+      }
+    }, 5000);
     
-    const address = response.data?.address;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data: any = await response.json();
+    const address = data?.address;
     if (!address) return null;
     
     // Try to get a good location name
@@ -218,19 +247,23 @@ async function fetchUnsplashPhoto(locationName: string, lat: number, lon: number
     }
     
     // Search Unsplash for photos of this location
-    const response = await axios.get('https://api.unsplash.com/search/photos', {
-      params: {
-        query: locationName,
-        per_page: 10,
-        orientation: 'landscape'
-      },
+    const url = new URL('https://api.unsplash.com/search/photos');
+    url.searchParams.set('query', locationName);
+    url.searchParams.set('per_page', '10');
+    url.searchParams.set('orientation', 'landscape');
+    
+    const response = await fetchWithTimeout(url.toString(), {
       headers: {
         'Authorization': `Client-ID ${accessKey}`
-      },
-      timeout: 5000
-    });
+      }
+    }, 5000);
     
-    const results = response.data?.results;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data: any = await response.json();
+    const results = data?.results;
     if (!results || results.length === 0) {
       console.log(`No Unsplash photos found for "${locationName}"`);
       return null;
