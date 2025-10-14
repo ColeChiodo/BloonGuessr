@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balloon Guesser</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Landing screen -->
+    <div id="landing-screen" class="screen">
+      <div class="landing-card">
+        <h1 class="landing-title">BloonGuessr 🎈</h1>
+        <p class="landing-tagline">See a photo. Guess the location. Get points.</p>
+        <button id="landing-btn" class="btn">Start</button>
+      </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div id="loading" class="screen hidden">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Loading game...</p>
+      <p class="loading-text">This could take 10-20 seconds</p>
+    </div>
+
+    <!-- Rules screen -->
+    <div id="rules-screen" class="screen hidden">
+      <div class="rules-card">
+        <h2 class="rules-title">How to Play</h2>
+        <div class="rules-list">
+          <div class="rule-item">
+            <div class="rule-number">1</div>
+            <div class="rule-text">View a photo depicts a location near the coordinates of a weather balloon</div>
+          </div>
+          <div class="rule-item">
+            <div class="rule-number">2</div>
+            <div class="rule-text">Click on the map and make your guess</div>
+          </div>
+          <div class="rule-item">
+            <div class="rule-number">3</div>
+            <div class="rule-text">Get up to 5000 points per round</div>
+          </div>
+          <div class="rule-item">
+            <div class="rule-number">4</div>
+            <div class="rule-text">Play 5 rounds and try to get the highest score</div>
+          </div>
+        </div>
+        <button id="start-game-btn" class="btn">Let's Go</button>
+      </div>
+    </div>
+
+    <!-- Game screen -->
+    <div id="game-screen" class="screen hidden">
+      <div class="game-container">
+        <div class="game-header">
+          <div class="score-display">
+            <div class="score-label">Score</div>
+            <div class="score-value" id="current-score">0</div>
+          </div>
+          <div class="round-display">
+            <div class="round-label">Round</div>
+            <div class="round-value"><span id="current-round">1</span> / 5</div>
+          </div>
+        </div>
+
+        <div class="game-content">
+        <div class="photo-panel">
+          <div class="photo-wrapper">
+            <img id="round-photo" src="" alt="Location">
+          </div>
+          <div id="photo-attribution" class="photo-credit"></div>
+        </div>
+
+        <div class="map-panel">
+          <div id="map"></div>
+          <button id="guess-btn" class="btn" disabled>Guess</button>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Result screen (after each round) -->
+    <div id="result-screen" class="screen hidden">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-score-big"><span id="round-score">0</span></div>
+          <div class="result-distance-text"><span id="distance">0</span> km away</div>
+        </div>
+        
+        <div id="result-map"></div>
+        
+        <div class="result-details">
+          <div class="detail-row">
+            <span class="detail-label">Location</span>
+            <span class="detail-value" id="result-location-name"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Balloon</span>
+            <span class="detail-value" id="result-balloon-id"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Coords</span>
+            <span class="detail-value" id="result-balloon-coords"></span>
+          </div>
+        </div>
+        
+        <button id="next-round-btn" class="btn">Next</button>
+      </div>
+    </div>
+
+    <!-- Final screen -->
+    <div id="final-screen" class="screen hidden">
+      <div class="final-card">
+        <div class="final-title">Game Over</div>
+        <div class="final-score-display">
+          <span id="final-score">0</span>
+          <span class="final-score-max">/25000</span>
+        </div>
+        <div class="final-rating" id="final-rating"></div>
+        <button id="play-again-btn" class="btn">Play Again</button>
+      </div>
+    </div>
+
+    <!-- Error screen -->
+    <div id="error-screen" class="screen hidden">
+      <div class="error-card">
+        <div class="error-title">Error</div>
+        <p id="error-message" class="error-text">Something went wrong</p>
+        <button id="retry-btn" class="btn">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <a href="https://colechiodo.cc" target="_blank" rel="noopener noreferrer" class="footer-copyright">© colechiodo.cc</a>
+      <a href="https://github.com/cole-chiodo/WindBorne" target="_blank" rel="noopener noreferrer" class="footer-github">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
+
