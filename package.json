@@ -1,5 +1,5 @@
 {
-  "name": "balloon-photo-guesser",
+  "name": "bloonguessr",
   "version": "1.0.0",
   "description": "GeoGuessr-style game using WindBorne balloon data and geotagged photos",
   "main": "dist/server.js",
@@ -19,7 +19,7 @@
     "game",
     "geography"
   ],
-  "author": "",
+  "author": "Cole Chiodo",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
