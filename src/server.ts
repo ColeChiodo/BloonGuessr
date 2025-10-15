@@ -17,5 +17,6 @@ app.use('/api', balloonRouter);
 // Start server
 app.listen(PORT, () => {
   console.log(`🎈 Balloon Photo Guesser server running on http://localhost:${PORT}`);
+  console.log(`This project is made by Cole Chiodo.`)
 });
 

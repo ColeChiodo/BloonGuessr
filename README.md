@@ -2,6 +2,8 @@
 
 A GeoGuessr-style game using **WindBorne Systems** live weather balloon constellation data with **Nominatim** for reverse geocoding and **Unsplash** for photos.
 
+I built this project as part of the WindBorne Junior Web Developer Applicaiton Process. I decided to turn it into a fun game.
+
 ## About
 
 This project combines three data sources:
