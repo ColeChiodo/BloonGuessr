@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { fetchBalloonData, createGameRound, calculateScore } from '../services/gameService';
+import { fetchBalloonData, createGameRound, calculateScore, getWeatherData } from '../services/gameService';
+import { get } from 'http';
 
 export const balloonRouter = Router();
 
@@ -24,10 +25,12 @@ balloonRouter.post('/game/guess', async (req, res) => {
     }
 
     const score = calculateScore(actualLat, actualLon, guessLat, guessLon);
+    const weather = await getWeatherData(actualLat, actualLon);
     
     res.json({ 
       score,
-      actualLocation: { lat: actualLat, lon: actualLon }
+      actualLocation: { lat: actualLat, lon: actualLon },
+      weather
     });
   } catch (error) {
     console.error('Error calculating score:', error);

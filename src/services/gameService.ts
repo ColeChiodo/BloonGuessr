@@ -470,3 +470,41 @@ export function calculateScore(actualLat: number, actualLon: number, guessLat: n
   return Math.max(0, score);
 }
 
+interface WeatherData {
+  temperature: number;
+  time: string;
+}
+
+export async function getWeatherData(lat: number, lon: number): Promise<WeatherData | null> {
+  try {
+    const params = new URLSearchParams({
+      latitude: lat.toString(),
+      longitude: lon.toString(),
+      current: "temperature_2m",
+    });
+
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data: any = await response.json();
+
+    // Open-Meteo returns:
+    // data.current.temperature_2m
+    // data.current.time
+    const result: WeatherData = {
+      temperature: data.current.temperature_2m,
+      time: data.current.time,
+    };
+
+    //console.log("Weather data:", result);
+
+    return result;
+
+  } catch (error) {
+    console.error("Error fetching weather data:", error);
+    return null;
+  }
+}

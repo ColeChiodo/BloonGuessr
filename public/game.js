@@ -166,7 +166,7 @@ async function submitGuess() {
     gameState.totalScore += result.score;
     
     // Show result
-    showResult(result.score, round.balloonLat, round.balloonLon);
+    showResult(result.score, round.balloonLat, round.balloonLon, result.weather.temperature);
   } catch (error) {
     console.error('Error submitting guess:', error);
     showError('Failed to submit guess. Please try again.');
@@ -174,7 +174,7 @@ async function submitGuess() {
 }
 
 // Show result of the round
-function showResult(score, actualLat, actualLon) {
+function showResult(score, actualLat, actualLon, temperature) {
   const round = gameState.rounds[gameState.currentRound];
   
   document.getElementById('round-score').textContent = score;
@@ -194,6 +194,7 @@ function showResult(score, actualLat, actualLon) {
   document.getElementById('result-balloon-coords').textContent = 
     `${actualLat.toFixed(2)}°, ${actualLon.toFixed(2)}°`;
   document.getElementById('result-balloon-id').textContent = round.balloonId || 'Unknown';
+  document.getElementById('result-balloon-temp').textContent = temperature || 'Unknown';
   
   // Create result map
   if (resultMap) {
